@@ -4,11 +4,11 @@ import { Paper, Typography } from '@material-ui/core'
 import OrderBookBody from './OrderBookBody'
 import {
   fetchSnapshot,
-  processUpdate,
+  handleMessage,
   selectBestAsks,
   selectBestBids
 } from './orderBookSlice'
-import { useAppDispatch, useAppSelector } from '../../app/hooks';
+import { useAppDispatch, useAppSelector } from '../../app/hooks'
 
 const WS_URL = 'wss://ws-feed.pro.coinbase.com'
 const RECONNECT_INTERVAL = 4 * 1000 //millis
@@ -23,14 +23,13 @@ const connectionStatus = {
 
 function OrderBook() {
   // Redux Dispatch
-  const dispatch = useAppDispatch();
+  const dispatch = useAppDispatch()
 
   // Websocket Connection
   const { readyState, sendJsonMessage } = useWebSocket(
     WS_URL,
     {
       onOpen: () => {
-        dispatch(fetchSnapshot())
         sendJsonMessage({
           "type": "subscribe",
           "channels": [
@@ -40,8 +39,9 @@ function OrderBook() {
             }
           ]
         })
+        dispatch(fetchSnapshot())
       },
-      onMessage: (e) => dispatch(processUpdate(e?.data)),
+      onMessage: (e) => dispatch(handleMessage(e?.data)),
       shouldReconnect: () => true,
       reconnectInterval: RECONNECT_INTERVAL,
       retryOnError: true,
