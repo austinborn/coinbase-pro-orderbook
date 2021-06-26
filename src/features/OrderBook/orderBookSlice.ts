@@ -1,12 +1,17 @@
-import { createAsyncThunk, createSlice, PayloadAction } from '@reduxjs/toolkit';
+import { createAsyncThunk, createSlice, PayloadAction } from '@reduxjs/toolkit'
 
-import { OrderList } from './types';
-import { RootState } from '../../app/store';
+import { OrderList } from './types'
+import { RootState } from '../../app/store'
+
+const axios = require('axios');
+
+const REST_API = 'https://api.pro.coinbase.com/products/BTC-USD/book'
 
 export interface OrderBookState {
   bestAsks: OrderList
   bestBids: OrderList
-  processedSnapshot: Boolean
+  messageQueue: Array<any>
+  sequenceNumber: number
   status: 'idle' | 'loading'
 }
 
@@ -55,46 +60,60 @@ const initialState: OrderBookState = {
       quantity: '21'
     }
   ],
-  processedSnapshot: false,
+  messageQueue: [],
+  sequenceNumber: 0,
   status: 'idle',
 }
 
 export const fetchSnapshot = createAsyncThunk(
   'orderBook/fetchSnapshot',
   async () => {
-    //TODO fetch snapshot from CBPro API
-    const response = await new Promise(() => ({}));
+    const response = await axios.get(REST_API, { params: { level: 3 } });
 
     //@ts-ignore
-    return response.data;
+    return response.data
   }
-);
+)
 
 export const orderBook = createSlice({
   name: 'orderBook',
   initialState,
   reducers: {
-    processUpdate: (state, action: PayloadAction<any>) => {
+    handleMessage: (state, action: PayloadAction<any>) => {
       const update = JSON.parse(action.payload)
-        const { type } = update
-        if (['change'].includes(type)) console.log({update})
-        switch (type) {
-          case 'change': {
-            //TODO
-            break;
+
+        const { sequence } = update
+        const nextNumber = state.sequenceNumber + 1
+
+        if (sequence === nextNumber) {
+          const { type } = update
+          switch (type) {
+            case 'change': {
+              //TODO
+              break
+            }
+            case 'done': {
+              //TODO
+              break
+            }
+            case 'match': {
+              //TODO
+              break
+            }
+            case 'open': {
+              //TODO
+              break
+            }
+            default: {
+              break
+            }
           }
-          case 'done': {
-            //TODO
-            break;
-          }
-          case 'match': {
-            //TODO
-            break;
-          }
-          case 'open': {
-            //TODO
-            break;
-          }
+        }
+        else if (sequence > nextNumber) {
+          state.messageQueue.push(update)
+          // TODO: Begin queue handler
+        }
+
           // const open = {
           //   order_id: "8152ee3b-4223-4099-8c1e-fbad963e2a2c"
           //   price: "32017.95"
@@ -129,28 +148,42 @@ export const orderBook = createSlice({
           //   type: "match"
           // }
           //TODO determine what to do on message
-        }
     }
   },
   extraReducers: (builder) => {
     builder
       .addCase(fetchSnapshot.fulfilled, (state, action) => {
-        state.status = 'idle';
-        state.processedSnapshot = true;
+        const { asks, bids, sequence } = action.payload
+
+        state.status = 'idle'
+        state.sequenceNumber = sequence
+
+        asks.forEach(a => {
+          const [price, quantity, orderId] = a
+          for (let i = a.length - 1; i > -1; i--) {
+            if (new Decimal(price) < state.bestAsks[i].price) {
+              continue
+            }
+            else if (new Decimal(price) === state.bestAsks[i].price) {
+              state.bestAsks[i].quantity += quantity
+            }
+          }
+        })
+
         //TODO process action.payload and output to state.bestAsks and state.bestBids
       })
       .addCase(fetchSnapshot.pending, (state) => {
-        state.status = 'loading';
+        state.status = 'loading'
       })
       .addCase(fetchSnapshot.rejected, (state, action) => {
         //TODO what to do if fetch snapshot failed
       })
   },
-});
+})
 
-export const { processUpdate } = orderBook.actions;
+export const { handleMessage } = orderBook.actions
 
-export const selectBestAsks = (state: RootState) => state.orderBook.bestAsks;
-export const selectBestBids = (state: RootState) => state.orderBook.bestBids;
+export const selectBestAsks = (state: RootState) => state.orderBook.bestAsks
+export const selectBestBids = (state: RootState) => state.orderBook.bestBids
 
-export default orderBook.reducer;
+export default orderBook.reducer
