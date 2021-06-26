@@ -1,10 +1,22 @@
 {
-  "name": "cbpro-orderbook",
+  "name": "web-app",
+  "author": "Austin Born",
+  "license": "MIT",
   "version": "0.1.0",
+  "description": "Frontend web app to support an L2 orderbook for Coinbase Pro.",
   "private": true,
+  "main": "index.js",
   "dependencies": {
     "@material-ui/core": "^4.11.4",
     "@reduxjs/toolkit": "^1.6.0",
+    "axios": "^0.21.1",
+    "react": "^17.0.2",
+    "react-dom": "^17.0.2",
+    "react-redux": "^7.2.4",
+    "react-scripts": "^4.0.3",
+    "react-use-websocket": "^2.7.1"
+  },
+  "devDependencies": {
     "@testing-library/jest-dom": "^4.2.4",
     "@testing-library/react": "^9.5.0",
     "@testing-library/user-event": "^7.2.1",
@@ -13,12 +25,6 @@
     "@types/react": "^16.14.8",
     "@types/react-dom": "^16.9.13",
     "@types/react-redux": "^7.1.16",
-    "axios": "^0.21.1",
-    "react": "^17.0.2",
-    "react-dom": "^17.0.2",
-    "react-redux": "^7.2.4",
-    "react-scripts": "^4.0.3",
-    "react-use-websocket": "^2.7.1",
     "typescript": "^4.3.4"
   },
   "scripts": {

@@ -1,0 +1,25 @@
+{
+  "name": "backend-api",
+  "author": "Austin Born",
+  "license": "MIT",
+  "version": "0.1.0",
+  "description": "Backend API service to support an L2 orderbook for Coinbase Pro.",
+  "private": true,
+  "main": "index.js",
+  "scripts": {
+    "serve": "nodemon app.ts"
+  },
+  "devDependencies": {
+    "@types/express": "^4.17.12",
+    "@types/express-ws": "^3.0.0",
+    "@types/node": "^15.12.4",
+    "nodemon": "^2.0.7",
+    "ts-node": "^10.0.0",
+    "typescript": "^4.3.4"
+  },
+  "dependencies": {
+    "express": "^4.17.1",
+    "express-ws": "^5.0.2",
+    "ws": "^7.5.0"
+  }
+}
