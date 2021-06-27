@@ -1,11 +1,11 @@
 import { Grid, Paper, Typography } from '@material-ui/core'
 
 import BookSide from './BookSide'
-import { OrderList } from './types'
+import { BookSideLevels } from './types'
 
 interface OrderBookUIProps {
-  asks: OrderList
-  bids: OrderList
+  asks: BookSideLevels
+  bids: BookSideLevels
 }
 
 function OrderBookBody ({ asks = [], bids = [] }: OrderBookUIProps) {
@@ -15,8 +15,8 @@ function OrderBookBody ({ asks = [], bids = [] }: OrderBookUIProps) {
         <Grid item xs={12}>
           <Typography>{"Coinbase Pro L2 Orderbook"}</Typography>
         </Grid>
-        <BookSide title={"Best Bids"} orders={bids}/>
-        <BookSide title={"Best Asks"} orders={asks}/>
+        <BookSide title={"Best Bids"} levels={bids}/>
+        <BookSide title={"Best Asks"} levels={asks}/>
       </Grid>
     </Paper>
   )

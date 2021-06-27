@@ -19,4 +19,4 @@ See the section about [running tests](https://facebook.github.io/create-react-ap
 ## Credits
 Written by Austin Born \
 [Create React App](https://github.com/facebook/create-react-app) \
-[React Redux](https://react-redux.js.org/)
+[Build an API with Node.js, Express, and TypeScript](https://www.split.io/blog/node-js-typescript-express-tutorial/) 
