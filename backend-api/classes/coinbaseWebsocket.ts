@@ -33,7 +33,6 @@ export class CoinbaseWebsocket {
     }
     ws.onmessage = e => {
       if (!this.fetchingSnapshot && orderBook.sequenceNumber === null) {
-        console.log("Fetch snapshot from website")
         this.fetchingSnapshot = true
 
         // Set interval so that the snapshot is more likely to have overlap with queued messages

@@ -19,7 +19,7 @@ app.ws('/', (ws, req) => {})
 
 var wsServer = wsInstance.getWss()
 
-setInterval(function () {
+setInterval(function () {//TODO update on every tick
   wsServer.clients.forEach(client => {
     const snapshot = orderBook.getSnapshot()
     const message = JSON.stringify(snapshot)

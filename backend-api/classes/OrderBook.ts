@@ -12,6 +12,11 @@ const bookLevelToString = (lvl: OrderBookLevel) => ({
   quantity: lvl.quantity.toString(),
 })
 
+const generateOrder = (price: string, quantity: string) => ({
+  price: new Decimal(price),
+  quantity: new Decimal(quantity)
+})
+
 export class OrderBook {
   _asks: Array<OrderBookLevel>
   _bids: Array<OrderBookLevel>
@@ -119,16 +124,16 @@ export class OrderBook {
     
     asks.forEach(a => {
       const orderId = a[2]
-      const formattedOrder = { price: new Decimal(a[0]), quantity: new Decimal(a[1]) }
+      const formattedOrder = generateOrder(a[0], a[1])
       aggregatedOrders[orderId] = formattedOrder
-      aggregatedAsks = processOpenOrder(aggregatedAsks, formattedOrder)
+      aggregatedAsks = processOpenOrder(aggregatedAsks, generateOrder(a[0], a[1]))
     })
     
     bids.forEach(b => {
       const orderId = b[2]
-      const formattedOrder = { price: new Decimal(b[0]), quantity: new Decimal(b[1]) }
+      const formattedOrder = generateOrder(b[0], b[1])
       aggregatedOrders[orderId] = formattedOrder
-      aggregatedBids = processOpenOrder(aggregatedBids, formattedOrder, false)
+      aggregatedBids = processOpenOrder(aggregatedBids, generateOrder(b[0], b[1]), false)
     })
     this._asks = aggregatedAsks
     this._bids = aggregatedBids
