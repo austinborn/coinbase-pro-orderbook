@@ -30,6 +30,10 @@ export class OrderBook {
     this._sequenceNumber = null
   }
 
+  getSequenceNumber(){
+    return this._sequenceNumber
+  }
+
   getSnapshot(){
     const asks = this._asks.slice(0, 5).map(bookLevelToString)
     const bids = this._bids.slice(0, 5).map(bookLevelToString)
@@ -123,7 +127,7 @@ export class OrderBook {
     let aggregatedAsks = []
     let aggregatedBids = []
     let aggregatedOrders = {}
-    
+
     asks.forEach(a => {
       const orderId = a[2]
       const formattedOrder = generateOrder(a[0], a[1])

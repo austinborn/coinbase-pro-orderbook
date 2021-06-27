@@ -32,13 +32,14 @@ export class CoinbaseWebsocket {
       //TODO
     }
     ws.onmessage = e => {
-      if (!this.fetchingSnapshot && orderBook.sequenceNumber === null) {
+      if (!this.fetchingSnapshot && orderBook.getSequenceNumber() === null) {
         this.fetchingSnapshot = true
 
         // Set interval so that the snapshot is more likely to have overlap with queued messages
         setTimeout(
           () => orderBook.initialize(async () => {
-            return await fetchInitialSnapshot()
+            const data = await fetchInitialSnapshot()
+            return data
           }).then(() => {
             this.fetchingSnapshot = false
             queue.start()
