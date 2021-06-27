@@ -51,6 +51,7 @@ export class CoinbaseWebsocket {
       const { type } = message || {}
       switch (type) {
         case 'change': {
+          console.log({message})
           queue.addToQueue(() => orderBook.handleChange({
             sequence: message.sequence
           }))

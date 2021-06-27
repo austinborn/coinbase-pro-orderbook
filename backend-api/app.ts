@@ -1,6 +1,6 @@
 import express from 'express'
 import expressWs from 'express-ws';
-import { CoinbaseWebsocket } from './classes/coinbaseWebsocket';
+import { CoinbaseWebsocket } from './classes/CoinbaseWebsocket';
 
 import { queue } from './registry/queue'
 import { orderBook } from './registry/orderBook'
@@ -13,7 +13,7 @@ let { app } = wsInstance;
 
 const port = 8000
 
-const MESSAGE_INTERVAL = 1 * 1000 //millis
+const MESSAGE_INTERVAL = 250 //millis
 
 app.ws('/', (ws, req) => {})
 
@@ -28,5 +28,3 @@ setInterval(function () {
 }, MESSAGE_INTERVAL)
 
 app.listen(port)
-
-//TODO reorg where this websocket is running

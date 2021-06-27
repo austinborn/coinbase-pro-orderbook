@@ -3,50 +3,61 @@ import Decimal from 'decimal.js'
 
 const REST_API = 'https://api.pro.coinbase.com/products/BTC-USD/book'
 
-const MAX_BOOK_LENGTH = 5
+const processNewOrder = (
+  bookSide = [],
+  order,
+  leftCheck,
+  rightCheck,
+  equalModifier
+) => {
+  if (bookSide.length === 0) return [order]
 
-export const processNewAsk = (bestAsks = [], ask) => {
-  if (bestAsks.length === 0) return [ask]
+  let lo = 0
+  let hi = bookSide.length - 1
+  let mid, level
 
-  for (let i = bestAsks.length - 1; i > -1; i--) {
-    let thisAskLevel = bestAsks[i]
+  while (lo <= hi) {
+    mid = Math.floor(((hi - lo) / 2) + lo)
+    level = bookSide[mid]
 
-    if (ask.price.gt(thisAskLevel.price)) {
-      if (bestAsks.length < MAX_BOOK_LENGTH) bestAsks.splice(i + 1, 0, ask)
-      break
+    if (leftCheck(order, level)) {
+      if (mid === lo) {
+        bookSide.splice(mid, 0, order)
+        break
+      }
+      hi = mid
     }
-    else if (ask.price.eq(thisAskLevel.price)) {
-      thisAskLevel.quantity = thisAskLevel.quantity.plus(ask.quantity);
-      break
+    else if (rightCheck(order, level)) {
+      if (mid === hi) {
+        bookSide.splice(mid + 1, 0, order)
+        break
+      }
+      lo = mid + 1
     }
-    else { // ask.price.lt(thisAskLevel.price)
-      if (i === 0) bestAsks.splice(i, 0, ask)
+    else {
+      equalModifier(order, level)
+      break
     }
   }
 
-  if (bestAsks.length > MAX_BOOK_LENGTH) bestAsks.pop()
-  return bestAsks
+  return bookSide
 }
 
-export const processNewBid = (bestBids = [], bid) => {
-  if (bestBids.length === 0) return [bid]
+export const processNewAsk = (sortedAsks = [], ask) => processNewOrder(
+  sortedAsks,
+  ask,
+  (ask, level) => ask.price.lt(level.price),
+  (ask, level) => ask.price.gt(level.price),
+  (ask, level) => level.quantity = level.quantity.plus(ask.quantity)
+)
 
-  for (let i = bestBids.length - 1; i > -1; i--) {
-    let thisBidLevel = bestBids[i]
-
-    if (bid.price.lt(thisBidLevel.price)) {
-      if (bestBids.length < MAX_BOOK_LENGTH) bestBids.splice(i + 1, 0, bid)
-      break
-    }
-    else if (bid.price.eq(thisBidLevel.price)) thisBidLevel.quantity = thisBidLevel.quantity.plus(bid.quantity);
-    else { // bid.price.gt(thisBidLevel.price)
-      if (i === 0) bestBids.splice(i, 0, bid)
-    }
-  }
-
-  if (bestBids.length > MAX_BOOK_LENGTH) bestBids.pop()
-  return bestBids
-}
+export const processNewBid = (sortedBids = [], bid) => processNewOrder(
+  sortedBids,
+  bid,
+  (bid, level) => bid.price.gt(level.price),
+  (bid, level) => bid.price.lt(level.price),
+  (bid, level) => level.quantity = level.quantity.plus(bid.quantity)
+)
 
 export const fetchInitialSnapshot = async () => {
   const { data } = await axios.get(REST_API, { params: { level: 3 } });
@@ -59,18 +70,18 @@ export const fetchInitialSnapshot = async () => {
   
   asks.forEach(a => {
     const orderId = a[2]
-    const formattedAsk = { price: new Decimal(a[0]), quantity: new Decimal(a[1]) }
-    aggregatedOrders[orderId] = formattedAsk
-    aggregatedAsks = processNewAsk(aggregatedAsks, formattedAsk)
+    const formattedOrder = { price: new Decimal(a[0]), quantity: new Decimal(a[1]) }
+    aggregatedOrders[orderId] = formattedOrder
+    aggregatedAsks = processNewAsk(aggregatedAsks, formattedOrder)
   })
   
   bids.forEach(b => {
     const orderId = b[2]
-    const formattedBid = { price: new Decimal(b[0]), quantity: new Decimal(b[1]) }
-    aggregatedOrders[orderId] = formattedBid
-    aggregatedBids = processNewBid(aggregatedBids, formattedBid)
+    const formattedOrder = { price: new Decimal(b[0]), quantity: new Decimal(b[1]) }
+    aggregatedOrders[orderId] = formattedOrder
+    aggregatedBids = processNewBid(aggregatedBids, formattedOrder)
   })
-
+  console.log({askLength: aggregatedAsks.length, bidLength: aggregatedBids.length})
   return {
     asks: aggregatedAsks,
     bids: aggregatedBids,
@@ -80,5 +91,7 @@ export const fetchInitialSnapshot = async () => {
 }
 
 export default {
-  fetchInitialSnapshot
+  fetchInitialSnapshot,
+  processNewAsk,
+  processNewBid,
 }
