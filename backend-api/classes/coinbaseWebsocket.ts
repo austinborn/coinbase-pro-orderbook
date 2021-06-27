@@ -1,4 +1,4 @@
-import { fetchInitialSnapshot } from '../utils/coinbaseRestUtils'
+import { fetchInitialSnapshot } from '../utils/orderBookUtils'
 
 const WebSocket = require('ws');
 
@@ -32,14 +32,14 @@ export class CoinbaseWebsocket {
       //TODO
     }
     ws.onmessage = e => {
-      if (!this.fetchingSnapshot && orderBook.sequenceNumber === null) {
-        console.log("Fetch snapshot from website")
+      if (!this.fetchingSnapshot && orderBook.getSequenceNumber() === null) {
         this.fetchingSnapshot = true
 
         // Set interval so that the snapshot is more likely to have overlap with queued messages
         setTimeout(
           () => orderBook.initialize(async () => {
-            return await fetchInitialSnapshot()
+            const data = await fetchInitialSnapshot()
+            return data
           }).then(() => {
             this.fetchingSnapshot = false
             queue.start()
@@ -52,13 +52,19 @@ export class CoinbaseWebsocket {
       switch (type) {
         case 'change': {
           queue.addToQueue(() => orderBook.handleChange({
-            sequence: message.sequence
+            newSize: message.new_size,
+            orderId: message.order_id,
+            sequence: message.sequence,
+            side: message.side,
           }))
           break
         }
         case 'done': {
           queue.addToQueue(() => orderBook.handleDone({
-            sequence: message.sequence
+            orderId: message.order_id,
+            reason: message.reason,
+            sequence: message.sequence,
+            side: message.side,
           }))
           break
         }
@@ -74,7 +80,10 @@ export class CoinbaseWebsocket {
         }
         case 'match': {
           queue.addToQueue(() => orderBook.handleMatch({
-            sequence: message.sequence
+            orderId: message.maker_order_id,
+            quantity: message.size,
+            sequence: message.sequence,
+            side: message.side,
           }))
           break
         }

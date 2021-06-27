@@ -1,81 +1,149 @@
+import Decimal from 'decimal.js'
 import { Dictionary, Order, OrderBookLevel } from '../types'
+
+import {
+  processChangeOrder,
+  processDoneOrder,
+  processOpenOrder
+} from '../utils/orderBookUtils'
 
 const bookLevelToString = (lvl: OrderBookLevel) => ({
   price: lvl.price.toString(),
   quantity: lvl.quantity.toString(),
 })
 
+const generateOrder = (price: string, quantity: string) => ({
+  price: new Decimal(price),
+  quantity: new Decimal(quantity)
+})
+
 export class OrderBook {
-  asks: Array<OrderBookLevel>
-  bids: Array<OrderBookLevel>
-  orders: Dictionary<Order>
-  sequenceNumber: number
+  _asks: Array<OrderBookLevel>
+  _bids: Array<OrderBookLevel>
+  _orders: Dictionary<Order>
+  _sequenceNumber: number
 
   constructor() {
-    this.asks = []
-    this.bids = []
-    this.orders = {}
-    this.sequenceNumber = null
+    this._asks = []
+    this._bids = []
+    this._orders = {}
+    this._sequenceNumber = null
+  }
+
+  getSequenceNumber(){
+    return this._sequenceNumber
   }
 
   getSnapshot(){
-    const asks = this.asks.map(bookLevelToString)
-    const bids = this.bids.map(bookLevelToString)
+    const asks = this._asks.slice(0, 5).map(bookLevelToString)
+    const bids = this._bids.slice(0, 5).map(bookLevelToString)
     return { asks, bids }
   }
 
-  handleChange({ sequence }){
-    console.log(`handleChange: ${sequence}`)
+  handleChange({ newSize, orderId, sequence, side }){
+    if (!(sequence > this._sequenceNumber)) return
+    if (!['buy', 'sell'].includes(side)) return
+    if (!newSize) return
+
+    this._sequenceNumber = sequence
+
+    const thisOrder = this._orders[orderId]
+    if (!thisOrder) return
+
+    const decimalNewSize = new Decimal(newSize)
+
+    const delta = decimalNewSize.minus(thisOrder.quantity)
+
+    thisOrder.quantity = decimalNewSize
+
+    if (side === 'buy') this._bids = processChangeOrder(this._bids, thisOrder.price, delta, false)
+    else this._asks = processChangeOrder(this._asks, thisOrder.price, delta)
   }
 
-  handleDone({ sequence }){
-    console.log(`handleDone:   ${sequence}`)
+  handleDone({ orderId, reason, sequence, side }){
+    if (!(sequence > this._sequenceNumber)) return
+    if (!['buy', 'sell'].includes(side)) return
+    if (!['filled', 'canceled'].includes(reason)) return
+
+    this._sequenceNumber = sequence
+
+    const thisOrder = this._orders[orderId]
+    if (!thisOrder) return
+
+    if (side === 'buy') this._bids = processDoneOrder(this._bids, thisOrder, false)
+    else this._asks = processDoneOrder(this._asks, thisOrder)
+
+    delete this._orders[orderId]
   }
 
-  handleMatch({ sequence }){
-    console.log(`handleMatch:  ${sequence}`)
+  handleMatch({ orderId, quantity, sequence, side }){
+    if (!(sequence > this._sequenceNumber)) return
+    if (!['buy', 'sell'].includes(side)) return
+
+    this._sequenceNumber = sequence
+
+    const thisOrder = this._orders[orderId]
+    if (!thisOrder) return
+
+    const matchQuantity = new Decimal(quantity)
+
+    const newOrderSize = thisOrder.quantity.minus(matchQuantity)
+
+    if (newOrderSize.isPos() && !newOrderSize.isZero()) {
+      thisOrder.quantity = newOrderSize
+
+      const delta = matchQuantity.neg()
+
+      if (side === 'buy') this._bids = processChangeOrder(this._bids, thisOrder.price, delta, false)
+      else this._asks = processChangeOrder(this._asks, thisOrder.price, delta)
+
+    } else {
+      if (side === 'buy') this._bids = processDoneOrder(this._bids, thisOrder, false)
+      else this._asks = processDoneOrder(this._asks, thisOrder)
+  
+      delete this._orders[orderId]
+    }
   }
 
   handleOpen({ orderId, price, quantity, sequence, side }){
-    console.log(`handleOpen:   ${sequence}`)
-    // {
-    //   const { order_id, price, side, remaining_size: quantity } = message
-    
-    //   let quantity = new Decimal(quantity)
-    //   let price = new Decimal(price)
-    
-    //   orders[order_id] = { price, quantity, side }
-    
-    //   if (side === 'buy') {
-    //     for (let i = bestBids.length - 1; i > -1; i--) {
-    //       let thisBidLevel = bestBids[i]
-    //       if (decimalPrice.lt(thisBidLevel.price)) break;
-    //       else if (decimalPrice.eq(thisBidLevel.price)) thisBidLevel.quantity = thisBidLevel.quantity.plus(decimalPrice);
-    //       else if (i === 0) { // decimalPrice.gt(thisBidLevel.price)
-    //         bestBids.unshift({ price: decimalPrice, quantity: new Decimal(quantity) })
-    //         if (bestBids.length > 5) bestBids.pop()
-    //       }
-    //     }
-    //   } else if (side === 'sell') {
-    //     for (let i = bestAsks.length - 1; i > -1; i--) {
-    //       let thisAskLevel = bestAsks[i]
-    //       if (decimalPrice.gt(thisAskLevel.price)) break;
-    //       else if (decimalPrice.eq(thisAskLevel.price)) thisAskLevel.quantity = thisAskLevel.quantity.plus(decimalPrice);
-    //       else if (i === 0) { // decimalPrice.lt(thisAskLevel.price)
-    //         bestAsks.unshift({ price: decimalPrice, quantity: new Decimal(quantity) })
-    //         if (bestAsks.length > 5) bestBids.pop()
-    //       }
-    //     }
-    //   }
-    // }
+    if (!(sequence > this._sequenceNumber)) return
+    if (!['buy', 'sell'].includes(side)) return
+
+    this._sequenceNumber = sequence
+
+    const formattedOrder = { price: new Decimal(price), quantity: new Decimal(quantity) }
+    this._orders[orderId] = formattedOrder
+
+    if (side === 'buy') this._bids = processOpenOrder(this._bids, formattedOrder, false)
+    else this._asks = processOpenOrder(this._asks, formattedOrder)
   }
 
   async initialize(getter) {
-    const { asks, bids, orders, sequenceNumber } = await getter() || {}
-    this.asks = asks || []
-    this.bids = bids || []
-    this.orders = orders || {}
-    this.sequenceNumber = sequenceNumber || null
-    console.log({asks, bids, sequenceNumber })
+    // asks = [ [ price: string, quantity: string, orderId: string ], ... ]
+    // bids = [ [ price: string, quantity: string, orderId: string ], ... ]
+    // sequence = number
+    const { asks = [], bids = [], sequence = null } = await getter() || {}
+
+    let aggregatedAsks = []
+    let aggregatedBids = []
+    let aggregatedOrders = {}
+
+    asks.forEach(a => {
+      const orderId = a[2]
+      const formattedOrder = generateOrder(a[0], a[1])
+      aggregatedOrders[orderId] = formattedOrder
+      aggregatedAsks = processOpenOrder(aggregatedAsks, generateOrder(a[0], a[1]))
+    })
+    
+    bids.forEach(b => {
+      const orderId = b[2]
+      const formattedOrder = generateOrder(b[0], b[1])
+      aggregatedOrders[orderId] = formattedOrder
+      aggregatedBids = processOpenOrder(aggregatedBids, generateOrder(b[0], b[1]), false)
+    })
+    this._asks = aggregatedAsks
+    this._bids = aggregatedBids
+    this._orders = aggregatedOrders
+    this._sequenceNumber = sequence
   }
 }
