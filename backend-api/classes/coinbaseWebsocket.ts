@@ -1,4 +1,4 @@
-import { fetchInitialSnapshot } from '../utils/coinbaseRestUtils'
+import { fetchInitialSnapshot } from '../utils/orderBookUtils'
 
 const WebSocket = require('ws');
 

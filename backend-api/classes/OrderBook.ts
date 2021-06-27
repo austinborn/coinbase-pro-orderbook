@@ -5,7 +5,7 @@ import {
   processChangeOrder,
   processDoneOrder,
   processOpenOrder
-} from '../utils/coinbaseRestUtils'
+} from '../utils/orderBookUtils'
 
 const bookLevelToString = (lvl: OrderBookLevel) => ({
   price: lvl.price.toString(),
@@ -13,32 +13,32 @@ const bookLevelToString = (lvl: OrderBookLevel) => ({
 })
 
 export class OrderBook {
-  asks: Array<OrderBookLevel>
-  bids: Array<OrderBookLevel>
-  orders: Dictionary<Order>
-  sequenceNumber: number
+  _asks: Array<OrderBookLevel>
+  _bids: Array<OrderBookLevel>
+  _orders: Dictionary<Order>
+  _sequenceNumber: number
 
   constructor() {
-    this.asks = []
-    this.bids = []
-    this.orders = {}
-    this.sequenceNumber = null
+    this._asks = []
+    this._bids = []
+    this._orders = {}
+    this._sequenceNumber = null
   }
 
   getSnapshot(){
-    const asks = this.asks.slice(0, 5).map(bookLevelToString)
-    const bids = this.bids.slice(0, 5).map(bookLevelToString)
+    const asks = this._asks.slice(0, 5).map(bookLevelToString)
+    const bids = this._bids.slice(0, 5).map(bookLevelToString)
     return { asks, bids }
   }
 
   handleChange({ newSize, orderId, sequence, side }){
-    if (!(sequence > this.sequenceNumber)) return
+    if (!(sequence > this._sequenceNumber)) return
     if (!['buy', 'sell'].includes(side)) return
     if (!newSize) return
 
-    this.sequenceNumber = sequence
+    this._sequenceNumber = sequence
 
-    const thisOrder = this.orders[orderId]
+    const thisOrder = this._orders[orderId]
     if (!thisOrder) return
 
     const decimalNewSize = new Decimal(newSize)
@@ -47,31 +47,31 @@ export class OrderBook {
 
     thisOrder.quantity = decimalNewSize
 
-    if (side === 'buy') this.bids = processChangeOrder(this.bids, thisOrder.price, delta, false)
-    else this.asks = processChangeOrder(this.asks, thisOrder.price, delta)
+    if (side === 'buy') this._bids = processChangeOrder(this._bids, thisOrder.price, delta, false)
+    else this._asks = processChangeOrder(this._asks, thisOrder.price, delta)
   }
 
   handleDone({ orderId, reason, sequence, side }){
-    if (!(sequence > this.sequenceNumber)) return
+    if (!(sequence > this._sequenceNumber)) return
     if (!['buy', 'sell'].includes(side)) return
     if (!['filled', 'canceled'].includes(reason)) return
 
-    this.sequenceNumber = sequence
+    this._sequenceNumber = sequence
 
-    const thisOrder = this.orders[orderId]
+    const thisOrder = this._orders[orderId]
     if (!thisOrder) return
 
-    if (side === 'buy') this.bids = processDoneOrder(this.bids, thisOrder, false)
-    else this.asks = processDoneOrder(this.asks, thisOrder)
+    if (side === 'buy') this._bids = processDoneOrder(this._bids, thisOrder, false)
+    else this._asks = processDoneOrder(this._asks, thisOrder)
 
-    delete this.orders[orderId]
+    delete this._orders[orderId]
   }
 
   handleMatch({ orderId, quantity, sequence, side }){
-    if (!(sequence > this.sequenceNumber)) return
+    if (!(sequence > this._sequenceNumber)) return
     if (!['buy', 'sell'].includes(side)) return
 
-    const thisOrder = this.orders[orderId]
+    const thisOrder = this._orders[orderId]
     if (!thisOrder) return
 
     const matchQuantity = new Decimal(quantity)
@@ -83,35 +83,56 @@ export class OrderBook {
 
       const delta = matchQuantity.neg()
 
-      if (side === 'buy') this.bids = processChangeOrder(this.bids, thisOrder.price, delta, false)
-      else this.asks = processChangeOrder(this.asks, thisOrder.price, delta)
+      if (side === 'buy') this._bids = processChangeOrder(this._bids, thisOrder.price, delta, false)
+      else this._asks = processChangeOrder(this._asks, thisOrder.price, delta)
 
     } else {
-      if (side === 'buy') this.bids = processDoneOrder(this.bids, thisOrder, false)
-      else this.asks = processDoneOrder(this.asks, thisOrder)
+      if (side === 'buy') this._bids = processDoneOrder(this._bids, thisOrder, false)
+      else this._asks = processDoneOrder(this._asks, thisOrder)
   
-      delete this.orders[orderId]
+      delete this._orders[orderId]
     }
   }
 
   handleOpen({ orderId, price, quantity, sequence, side }){
-    if (!(sequence > this.sequenceNumber)) return
+    if (!(sequence > this._sequenceNumber)) return
     if (!['buy', 'sell'].includes(side)) return
 
-    this.sequenceNumber = sequence
+    this._sequenceNumber = sequence
 
     const formattedOrder = { price: new Decimal(price), quantity: new Decimal(quantity) }
-    this.orders[orderId] = formattedOrder
+    this._orders[orderId] = formattedOrder
 
-    if (side === 'buy') this.bids = processOpenOrder(this.bids, formattedOrder, false)
-    else this.asks = processOpenOrder(this.asks, formattedOrder)
+    if (side === 'buy') this._bids = processOpenOrder(this._bids, formattedOrder, false)
+    else this._asks = processOpenOrder(this._asks, formattedOrder)
   }
 
   async initialize(getter) {
-    const { asks, bids, orders, sequenceNumber } = await getter() || {}
-    this.asks = asks || []
-    this.bids = bids || []
-    this.orders = orders || {}
-    this.sequenceNumber = sequenceNumber || null
+    // asks = [ [ price: string, quantity: string, orderId: string ], ... ]
+    // bids = [ [ price: string, quantity: string, orderId: string ], ... ]
+    // sequence = number
+    const { asks = [], bids = [], sequence = null } = await getter() || {}
+
+    let aggregatedAsks = []
+    let aggregatedBids = []
+    let aggregatedOrders = {}
+    
+    asks.forEach(a => {
+      const orderId = a[2]
+      const formattedOrder = { price: new Decimal(a[0]), quantity: new Decimal(a[1]) }
+      aggregatedOrders[orderId] = formattedOrder
+      aggregatedAsks = processOpenOrder(aggregatedAsks, formattedOrder)
+    })
+    
+    bids.forEach(b => {
+      const orderId = b[2]
+      const formattedOrder = { price: new Decimal(b[0]), quantity: new Decimal(b[1]) }
+      aggregatedOrders[orderId] = formattedOrder
+      aggregatedBids = processOpenOrder(aggregatedBids, formattedOrder, false)
+    })
+    this._asks = aggregatedAsks
+    this._bids = aggregatedBids
+    this._orders = aggregatedOrders
+    this._sequenceNumber = sequence
   }
 }

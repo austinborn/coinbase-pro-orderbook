@@ -1,5 +1,4 @@
 import axios from 'axios'
-import Decimal from 'decimal.js'
 
 const REST_API = 'https://api.pro.coinbase.com/products/BTC-USD/book'
 
@@ -77,33 +76,7 @@ export const processOpenOrder = (sortedBook = [], order, asc = true) => binarySe
 
 export const fetchInitialSnapshot = async () => {
   const { data } = await axios.get(REST_API, { params: { level: 3 } });
-
-  const { asks, bids, sequence } = data || {}
-
-  let aggregatedAsks = []
-  let aggregatedBids = []
-  let aggregatedOrders = {}
-  
-  asks.forEach(a => {
-    const orderId = a[2]
-    const formattedOrder = { price: new Decimal(a[0]), quantity: new Decimal(a[1]) }
-    aggregatedOrders[orderId] = formattedOrder
-    aggregatedAsks = processOpenOrder(aggregatedAsks, formattedOrder)
-  })
-  
-  bids.forEach(b => {
-    const orderId = b[2]
-    const formattedOrder = { price: new Decimal(b[0]), quantity: new Decimal(b[1]) }
-    aggregatedOrders[orderId] = formattedOrder
-    aggregatedBids = processOpenOrder(aggregatedBids, formattedOrder, false)
-  })
-  console.log({askLength: aggregatedAsks.length, bidLength: aggregatedBids.length})
-  return {
-    asks: aggregatedAsks,
-    bids: aggregatedBids,
-    orders: aggregatedOrders,
-    sequenceNumber: sequence,
-  }
+  return data
 }
 
 export default {
