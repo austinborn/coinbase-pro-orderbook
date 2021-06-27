@@ -46,11 +46,8 @@ export const processChangeOrder = (sortedBook = [], price, delta, asc = true) =>
   [],
   b => asc ? price.lt(b.price) : price.gt(b.price),
   b => asc ? price.gt(b.price) : price.lt(b.price),
-  (b, i) => {
-    b.quantity = b.quantity.plus(delta)
-    if (!b.quantity.isPositive()) sortedBook.splice(i, 1)
-  },
-  () => null
+  (b, i) => b.quantity = b.quantity.plus(delta),
+  i => null
 )
 
 export const processDoneOrder = (sortedBook = [], order, asc = true) => binarySearch(
@@ -60,9 +57,9 @@ export const processDoneOrder = (sortedBook = [], order, asc = true) => binarySe
   b => asc ? order.price.gt(b.price) : order.price.lt(b.price),
   (b, i) => {
     b.quantity = b.quantity.minus(order.quantity)
-    if (!b.quantity.isPositive()) sortedBook.splice(i, 1)
+    if (!b.quantity.isPos() || b.quantity.isZero()) sortedBook.splice(i, 1)
   },
-  () => null
+  i => null
 )
 
 export const processOpenOrder = (sortedBook = [], order, asc = true) => binarySearch(
@@ -70,7 +67,7 @@ export const processOpenOrder = (sortedBook = [], order, asc = true) => binarySe
   [order],
   b => asc ? order.price.lt(b.price) : order.price.gt(b.price),
   b => asc ? order.price.gt(b.price) : order.price.lt(b.price),
-  b => b.quantity = b.quantity.plus(order.quantity),
+  (b, i) => b.quantity = b.quantity.plus(order.quantity),
   i => sortedBook.splice(i, 0, order)
 )
 
