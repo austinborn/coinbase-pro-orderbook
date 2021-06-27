@@ -32,7 +32,7 @@ const referenceMessages = {
     { orderId: 'G', reason: 'canceled', sequence: 670, side: 'buy'  }
   ],
   match: [
-    { orderId: 'C', quantity: '45.6', sequence: 671, side: 'sell' },
+    { orderId: 'C', quantity: '456',  sequence: 671, side: 'sell' },
     { orderId: 'H', quantity: '3.5',  sequence: 672, side: 'buy'  }
   ],
   open: [
@@ -170,7 +170,7 @@ describe('Orderbook.handleChange', () => {
     expect(orderBook._asks[0].price.toNumber()).toBeGreaterThan(orderBook._bids[0].price.toNumber())
   })
 
-  it ('ignores message with unknown orderId, but update sequence number', () => {
+  it ('ignores message with unknown orderId, but updates sequence number', () => {
     orderBook.handleChange({  ...testMessages.change[0], orderId: 'Z' })
 
     expect(orderBook._asks).toEqual(testAsks)
@@ -258,13 +258,91 @@ describe('Orderbook.handleDone', () => {
     expect(orderBook._asks[0].price.toNumber()).toBeGreaterThan(orderBook._bids[0].price.toNumber())
   })
 
-  it ('ignores message with unknown orderId, but update sequence number', () => {
+  it ('ignores message with unknown orderId, but updates sequence number', () => {
     orderBook.handleDone({ ...testMessages.done[0], orderId: 'Z' })
 
     expect(orderBook._asks).toEqual(testAsks)
     expect(orderBook._bids).toEqual(testBids)
     expect(orderBook._orders).toEqual(testOrders)
     expect(orderBook._sequenceNumber).toEqual(testMessages.done[0].sequence)
+    expect(orderBook._asks[0].price.toNumber()).toBeGreaterThan(orderBook._bids[0].price.toNumber())
+  })
+})
+
+describe('Orderbook.handleMatch', () => {
+  beforeEach(resetStackInitialized)
+
+  it ('correctly adjusts price level on buy side (partially filled order)', () => {
+    let testMessage = testMessages.match[1]
+    orderBook._bids[2].quantity = new Decimal('5.3')
+    orderBook.handleMatch(testMessage)
+
+    testBids[2].quantity = new Decimal('1.8')// 5.3 - 3.5
+    testOrders[testMessage.orderId].quantity = new Decimal('0.7') //4.2 - 3.5
+
+    expect(orderBook._asks).toEqual(testAsks)
+    expect(orderBook._bids).toEqual(testBids)
+    expect(orderBook._orders).toEqual(testOrders)
+    expect(orderBook._sequenceNumber).toEqual(testMessage.sequence)
+    expect(orderBook._asks[0].price.toNumber()).toBeGreaterThan(orderBook._bids[0].price.toNumber())
+  })
+
+  it ('correctly adjusts price level on sell side (fully filled order)', () => {
+    let testMessage = testMessages.match[0]
+    orderBook._asks[2].quantity = new Decimal('458')
+    orderBook.handleMatch(testMessage)
+
+    testAsks[2].quantity = new Decimal('2')// 458 - 456
+    delete testOrders[testMessage.orderId]
+
+    expect(orderBook._asks).toEqual(testAsks)
+    expect(orderBook._bids).toEqual(testBids)
+    expect(orderBook._orders).toEqual(testOrders)
+    expect(orderBook._sequenceNumber).toEqual(testMessage.sequence)
+    expect(orderBook._asks[0].price.toNumber()).toBeGreaterThan(orderBook._bids[0].price.toNumber())
+  })
+
+  it ('correctly removes price when order was last in price level', () => {
+    let testMessage = testMessages.match[0]
+    orderBook.handleMatch(testMessage)
+
+    testAsks.splice(2, 1)
+    delete testOrders[testMessage.orderId]
+
+    expect(orderBook._asks).toEqual(testAsks)
+    expect(orderBook._bids).toEqual(testBids)
+    expect(orderBook._orders).toEqual(testOrders)
+    expect(orderBook._sequenceNumber).toEqual(testMessage.sequence)
+    expect(orderBook._asks[0].price.toNumber()).toBeGreaterThan(orderBook._bids[0].price.toNumber())
+  })
+
+  it ('ignores message with lower sequence number', () => {
+    orderBook.handleMatch({ ...testMessages.match[0], sequence: 500 })
+
+    expect(orderBook._asks).toEqual(testAsks)
+    expect(orderBook._bids).toEqual(testBids)
+    expect(orderBook._orders).toEqual(testOrders)
+    expect(orderBook._sequenceNumber).toEqual(testSequence)
+    expect(orderBook._asks[0].price.toNumber()).toBeGreaterThan(orderBook._bids[0].price.toNumber())
+  })
+
+  it ('ignores message with unknown side', () => {
+    orderBook.handleMatch({ ...testMessages.match[0], side: 'why note both?' })
+
+    expect(orderBook._asks).toEqual(testAsks)
+    expect(orderBook._bids).toEqual(testBids)
+    expect(orderBook._orders).toEqual(testOrders)
+    expect(orderBook._sequenceNumber).toEqual(testSequence)
+    expect(orderBook._asks[0].price.toNumber()).toBeGreaterThan(orderBook._bids[0].price.toNumber())
+  })
+
+  it ('ignores message with unknown orderId, but updates sequence number', () => {
+    orderBook.handleMatch({ ...testMessages.match[0], orderId: 'Z' })
+
+    expect(orderBook._asks).toEqual(testAsks)
+    expect(orderBook._bids).toEqual(testBids)
+    expect(orderBook._orders).toEqual(testOrders)
+    expect(orderBook._sequenceNumber).toEqual(testMessages.match[0].sequence)
     expect(orderBook._asks[0].price.toNumber()).toBeGreaterThan(orderBook._bids[0].price.toNumber())
   })
 })

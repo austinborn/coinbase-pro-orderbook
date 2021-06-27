@@ -76,6 +76,8 @@ export class OrderBook {
     if (!(sequence > this._sequenceNumber)) return
     if (!['buy', 'sell'].includes(side)) return
 
+    this._sequenceNumber = sequence
+
     const thisOrder = this._orders[orderId]
     if (!thisOrder) return
 
@@ -83,7 +85,7 @@ export class OrderBook {
 
     const newOrderSize = thisOrder.quantity.minus(matchQuantity)
 
-    if (newOrderSize.isPositive()) {
+    if (newOrderSize.isPos() && !newOrderSize.isZero()) {
       thisOrder.quantity = newOrderSize
 
       const delta = matchQuantity.neg()
