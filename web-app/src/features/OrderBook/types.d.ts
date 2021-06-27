@@ -1,7 +1,6 @@
-export type Order = {
-  orderId: string
+export type BookLevel = {
   price: string
   quantity: string
 }
 
-export type OrderList = Array<Order>
+export type BookSideLevels = Array<BookLevel>

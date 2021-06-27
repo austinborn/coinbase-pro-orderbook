@@ -2,16 +2,8 @@ import useWebSocket, { ReadyState } from 'react-use-websocket'
 import { Paper, Typography } from '@material-ui/core'
 
 import OrderBookBody from './OrderBookBody'
-import {
-  fetchSnapshot,
-  handleMessage,
-  selectBestAsks,
-  selectBestBids
-} from './orderBookSlice'
-import { useAppDispatch, useAppSelector } from '../../app/hooks'
 
-const WS_URL = 'wss://ws-feed.pro.coinbase.com'
-const RECONNECT_INTERVAL = 4 * 1000 //millis
+const WS_URL = 'ws://localhost:8000'
 
 const connectionStatus = {
   [ReadyState.CONNECTING]: 'Connecting',
@@ -22,35 +14,23 @@ const connectionStatus = {
 }
 
 function OrderBook() {
-  // Redux Dispatch
-  const dispatch = useAppDispatch()
 
   // Websocket Connection
-  const { readyState, sendJsonMessage } = useWebSocket(
+  const {
+    lastJsonMessage,
+    readyState
+  } = useWebSocket(
     WS_URL,
     {
-      onOpen: () => {
-        sendJsonMessage({
-          "type": "subscribe",
-          "channels": [
-            {
-              "name": "full",
-              "product_ids": ["BTC-USD"]
-            }
-          ]
-        })
-        dispatch(fetchSnapshot())
-      },
-      onMessage: (e) => dispatch(handleMessage(e?.data)),
       shouldReconnect: () => true,
-      reconnectInterval: RECONNECT_INTERVAL,
       retryOnError: true,
     }
   )
 
-  // Redux State Selector
-  const asks = useAppSelector(selectBestAsks)
-  const bids = useAppSelector(selectBestBids)
+  const {
+    asks = [],
+    bids = []
+  } = lastJsonMessage || {};
 
   return (
     <div>

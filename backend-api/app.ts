@@ -1,56 +1,32 @@
-import express, { Request, Response, NextFunction } from 'express'
+import express from 'express'
 import expressWs from 'express-ws';
+import { CoinbaseWebsocket } from './classes/coinbaseWebsocket';
+
+import { queue } from './registry/queue'
+import { orderBook } from './registry/orderBook'
+
+var coinbaseWebsocket = new CoinbaseWebsocket({ orderBook, queue })
 
 let appBase = express();
 let wsInstance = expressWs(appBase);
-let { app } = wsInstance; // let app = wsInstance.app;
+let { app } = wsInstance;
 
-const port = 8000;
+const port = 8000
 
-interface LocationWithTimezone {
-  location: string;
-  timezoneName: string;
-  timezoneAbbr: string;
-  utcOffset: number;
-};
+const MESSAGE_INTERVAL = 1 * 1000 //millis
 
-const getLocationsWithTimezones = (request: Request, response: Response, next: NextFunction) => {
-  let locations: LocationWithTimezone[] = [
-    {
-      location: 'Germany',
-      timezoneName: 'Central European Time',
-      timezoneAbbr: 'CET',
-      utcOffset: 1
-    },
-    {
-      location: 'China',
-      timezoneName: 'China Standard Time',
-      timezoneAbbr: 'CST',
-      utcOffset: 8
-    },
-    {
-      location: 'Argentina',
-      timezoneName: 'Argentina Time',
-      timezoneAbbr: 'ART',
-      utcOffset: -3
-    },
-    {
-      location: 'Japan',
-      timezoneName: 'Japan Standard Time',
-      timezoneAbbr: 'JST',
-      utcOffset: 9
-    }
-  ];
+app.ws('/', (ws, req) => {})
 
-  response.status(200).json(locations);
-};
+var wsServer = wsInstance.getWss()
 
-app.get('/timezones', getLocationsWithTimezones);
+setInterval(function () {
+  wsServer.clients.forEach(client => {
+    const snapshot = orderBook.getSnapshot()
+    const message = JSON.stringify(snapshot)
+    client.send(message)
+  })
+}, MESSAGE_INTERVAL)
 
-app.ws('/', function(ws, req) {
-  ws.on('message', function(msg) {
-    console.log(msg);
-  });
-});
+app.listen(port)
 
-app.listen(port);
+//TODO reorg where this websocket is running

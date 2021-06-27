@@ -1,18 +1,18 @@
 import { Grid, Typography } from '@material-ui/core'
 
-import type { OrderList } from './types'
+import type { BookSideLevels } from './types'
 
 interface BookSideProps {
-  orders: OrderList
+  levels: BookSideLevels
   title: string
 }
 
-function BookSide ({ orders = [], title = '' }: BookSideProps) {
+function BookSide ({ levels = [], title = '' }: BookSideProps) {
   return (
     <Grid item xs={6}>
     <Typography>{title}</Typography>
-    {orders.map(o => (
-      <Typography key={o.orderId}>{`${o.quantity} @ ${o.price}`}</Typography>
+    {levels.map((lvl, i) => (
+      <Typography key={i}>{`${lvl.quantity} @ ${lvl.price}`}</Typography>
     ))}
   </Grid>
   )
