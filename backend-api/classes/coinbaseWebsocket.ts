@@ -51,15 +51,20 @@ export class CoinbaseWebsocket {
       const { type } = message || {}
       switch (type) {
         case 'change': {
-          console.log({message})
           queue.addToQueue(() => orderBook.handleChange({
-            sequence: message.sequence
+            newSize: message.new_size,
+            orderId: message.order_id,
+            sequence: message.sequence,
+            side: message.side,
           }))
           break
         }
         case 'done': {
           queue.addToQueue(() => orderBook.handleDone({
-            sequence: message.sequence
+            orderId: message.order_id,
+            reason: message.reason,
+            sequence: message.sequence,
+            side: message.side,
           }))
           break
         }
@@ -75,7 +80,10 @@ export class CoinbaseWebsocket {
         }
         case 'match': {
           queue.addToQueue(() => orderBook.handleMatch({
-            sequence: message.sequence
+            orderId: message.maker_order_id,
+            quantity: message.size,
+            sequence: message.sequence,
+            side: message.side,
           }))
           break
         }
