@@ -1,4 +1,4 @@
-export const enableLogging = true
+export const enableLogging = false
 
 export default {
   enableLogging
