@@ -2,7 +2,7 @@
 This project implements an L2 order book for the Coinbase Pro exchange, connecting to both the websocket and REST endpoints necessary to fetch and handle L3 order data, which is maintained as an L2 order book in the backend and displayed in the web GUI via a second websocket connection.
 
 ## Requirements
-Tested on `node` v14.17.0 using `npm` v6.14.13, but other versions may still work.
+Tested on `node@v14.17.0` with `npm@v6.14.13`, but other versions may still work.
 
 ## Running the Backend
 First, install the necessary packages for the backend.
