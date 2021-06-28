@@ -1,16 +1,39 @@
 import useWebSocket, { ReadyState } from 'react-use-websocket'
-import { Paper, Typography } from '@material-ui/core'
+import { Box, Grid, Paper, Typography } from '@material-ui/core'
 
 import OrderBookBody from './OrderBookBody'
 
 const WS_URL = 'ws://localhost:8000'
 
 const connectionStatus = {
-  [ReadyState.CONNECTING]: 'Connecting',
-  [ReadyState.OPEN]: 'Open',
-  [ReadyState.CLOSING]: 'Closing',
-  [ReadyState.CLOSED]: 'Closed',
-  [ReadyState.UNINSTANTIATED]: 'Uninstantiated',
+  [ReadyState.CONNECTING]: {
+    text: 'Connecting',
+    color: 'blue',
+  },
+  [ReadyState.OPEN]: {
+    text: 'Open',
+    color: 'green',
+  },
+  [ReadyState.CLOSING]: {
+    text: 'Closing',
+    color: 'blue',
+  },
+  [ReadyState.CLOSED]: {
+    text: 'Closed',
+    color: 'red',
+  },
+  [ReadyState.UNINSTANTIATED]: {
+    text: 'Uninstantiated',
+    color: 'red',
+  },
+}
+
+const paperStyle = {
+  backgroundColor: '#dcfcf4',
+  margin: 'auto',
+  marginTop: '20px',
+  maxWidth: '600px',
+  padding: '10px'
 }
 
 function OrderBook() {
@@ -27,20 +50,35 @@ function OrderBook() {
     }
   )
 
-  const {
-    asks = [],
-    bids = []
-  } = lastJsonMessage || {};
+  const { asks = [], bids = [] } = lastJsonMessage || {};
 
   return (
-    <div>
-      <Paper>
-        <Typography>
-          {'Websocket Status: ' + (connectionStatus[readyState] || 'Unknown')}
-        </Typography>
-      </Paper>
-      <OrderBookBody bids={bids} asks={asks} />
-    </div>
+    <Paper style={paperStyle}>
+      <Grid container spacing={1}>
+        <Grid item xs={12} style={{ display: 'flex' }}>
+          <Typography variant={'h4'} style={{ margin: 'auto' }}>
+            <Box fontWeight="fontWeightBold" m={1}>
+              {"Coinbase Pro L2 Orderbook"}
+            </Box>
+          </Typography>
+        </Grid>
+        <Grid item xs={12} style={{ display: 'flex' }}>
+
+          <Typography variant={'h6'} style={{ margin: 'auto' }}>
+            <span style={{ display: 'flex' }}>
+              Websocket Status:
+              <Box fontWeight="fontWeightBold" m={0}>
+                <div style={{ color: connectionStatus[readyState]?.color || 'black', paddingLeft: '6px' }}>
+                  {connectionStatus[readyState]?.text || 'Unknown'}
+                </div>
+              </Box>
+            </span>
+          </Typography>
+
+        </Grid>
+        <OrderBookBody bids={bids} asks={asks} />
+      </Grid>
+    </Paper>
   )
 }
 

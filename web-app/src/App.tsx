@@ -1,6 +1,6 @@
 import OrderBook from './features/OrderBook/OrderBook'
 
-function App() {//TODO add global theme
+function App() {
   return (
     <div className="App">
       <OrderBook />
