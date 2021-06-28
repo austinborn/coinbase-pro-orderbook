@@ -23,7 +23,20 @@ const onOrderBookUpdate = () => {
   wsServer.clients.forEach(client => {
     const snapshot = orderBook.getSnapshot()
 
-    if (enableLogging && (parseFloat(snapshot.asks[0].price) <= parseFloat(snapshot.bids[0].price))) console.log(`Error! Book is crossed at sequence=${orderBook.getSequenceNumber()}`)
+    if (enableLogging) {
+      if (parseFloat(snapshot.asks[0].price) <= parseFloat(snapshot.bids[0].price)) console.log({
+        msg: 'Error! Book is crossed.',
+        sequence: orderBook.getSequenceNumber(),
+        asks: snapshot.asks,
+        bids: snapshot.bids
+      })
+      if (snapshot.asks.concat(snapshot.bids).some(a => parseFloat(a.quantity) <= 0)) console.log({
+        msg: 'Error! Price level has negative quantity.',
+        sequence: orderBook.getSequenceNumber(),
+        asks: snapshot.asks,
+        bids: snapshot.bids
+      })
+    }
 
     const message = JSON.stringify(snapshot)
     client.send(message)
