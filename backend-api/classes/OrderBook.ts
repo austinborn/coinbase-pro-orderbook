@@ -60,7 +60,7 @@ export class OrderBook {
     thisOrder.quantity = decimalNewSize
 
     if (side === 'buy') this._bids = processChangeOrder(this._bids, thisOrder.price, delta, false)
-    else this._asks = processChangeOrder(this._asks, thisOrder.price, delta)
+    else                this._asks = processChangeOrder(this._asks, thisOrder.price, delta)
   }
 
   handleDone({ orderId, reason, sequence, side }){
@@ -76,7 +76,7 @@ export class OrderBook {
     if (!thisOrder) return
 
     if (side === 'buy') this._bids = processDoneOrder(this._bids, thisOrder, false)
-    else this._asks = processDoneOrder(this._asks, thisOrder)
+    else                this._asks = processDoneOrder(this._asks, thisOrder)
 
     delete this._orders[orderId]
   }
@@ -102,11 +102,11 @@ export class OrderBook {
       const delta = matchQuantity.neg()
 
       if (side === 'buy') this._bids = processChangeOrder(this._bids, thisOrder.price, delta, false)
-      else this._asks = processChangeOrder(this._asks, thisOrder.price, delta)
+      else                this._asks = processChangeOrder(this._asks, thisOrder.price, delta)
 
     } else {
       if (side === 'buy') this._bids = processDoneOrder(this._bids, thisOrder, false)
-      else this._asks = processDoneOrder(this._asks, thisOrder)
+      else                this._asks = processDoneOrder(this._asks, thisOrder)
   
       delete this._orders[orderId]
     }
@@ -124,7 +124,7 @@ export class OrderBook {
     this._orders[orderId] = formattedOrder
 
     if (side === 'buy') this._bids = processOpenOrder(this._bids, formattedOrder, false)
-    else this._asks = processOpenOrder(this._asks, formattedOrder)
+    else                this._asks = processOpenOrder(this._asks, formattedOrder)
   }
 
   async initialize(getter) {

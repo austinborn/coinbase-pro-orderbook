@@ -30,4 +30,4 @@ const onOrderBookUpdate = () => {
   })
 }
 
-var coinbaseWebsocket = new CoinbaseWebsocket({ onOrderBookUpdate, orderBook, queue,  })
+var coinbaseWebsocket = new CoinbaseWebsocket({ onOrderBookUpdate, orderBook, queue })

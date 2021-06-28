@@ -19,16 +19,16 @@ const subscribeMessage = {
 const sleep = (interval: number) => new Promise(resolve => setTimeout(resolve, interval))
 
 export class CoinbaseWebsocket {
-  ws: WebSocket
-  fetchingSnapshot: boolean
+  _ws: WebSocket
+  _fetchingSnapshot: boolean
 
   constructor({ onOrderBookUpdate, orderBook, queue }) {
-    this.fetchingSnapshot = false
+    this._fetchingSnapshot = false
 
     const ws = new WebSocket(WS_URL)
 
     const initializeOrderBook = () => {
-      this.fetchingSnapshot = true
+      this._fetchingSnapshot = true
 
       orderBook.initialize(async () => {
 
@@ -47,21 +47,19 @@ export class CoinbaseWebsocket {
         }
         return data
       }).then(() => {
-        this.fetchingSnapshot = false
+        this._fetchingSnapshot = false
         queue.start()
         onOrderBookUpdate()
       })
     }
 
-    ws.onclose = e => {
-      //TODO
-    }
-    ws.onerror = e => {
-      //TODO
-    }
+    ws.onclose = e => {}
+
+    ws.onerror = e => {}
+
     ws.onmessage = e => {
-      
-      if (!this.fetchingSnapshot && orderBook.getSequenceNumber() === null) {
+
+      if (!this._fetchingSnapshot && orderBook.getSequenceNumber() === null) {
         initializeOrderBook()
       }
 
@@ -122,10 +120,11 @@ export class CoinbaseWebsocket {
         }
       }
     }
+
     ws.onopen = async e => {
       ws.send(JSON.stringify(subscribeMessage))
     }
 
-    this.ws = ws
+    this._ws = ws
   }
 }
