@@ -466,6 +466,3 @@ describe('OrderBook.handleOpen', () => {
     expect(orderBook._asks[0].price.toNumber()).toBeGreaterThan(orderBook._bids[0].price.toNumber())
   })
 })
-
-//TODO validation and unit tests to check that prices, new_size and quantity are float
-//TODO validation and unit tests to check that orderId is string
