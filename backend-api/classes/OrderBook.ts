@@ -1,6 +1,7 @@
 import Decimal from 'decimal.js'
 import { Dictionary, Order, OrderBookLevel } from '../types'
 
+import { enableLogging } from '../config'
 import {
   processChangeOrder,
   processDoneOrder,
@@ -41,12 +42,14 @@ export class OrderBook {
   }
 
   handleChange({ newSize, orderId, sequence, side }){
+    if (enableLogging) console.log({ type: 'change', orderId, sequence, side, newSize })
+
     if (!(sequence > this._sequenceNumber)) return
     if (!['buy', 'sell'].includes(side)) return
     if (!newSize) return
 
     this._sequenceNumber = sequence
-
+    
     const thisOrder = this._orders[orderId]
     if (!thisOrder) return
 
@@ -61,12 +64,14 @@ export class OrderBook {
   }
 
   handleDone({ orderId, reason, sequence, side }){
+    if (enableLogging) console.log({type: 'done', orderId, reason, sequence, side})
+
     if (!(sequence > this._sequenceNumber)) return
     if (!['buy', 'sell'].includes(side)) return
     if (!['filled', 'canceled'].includes(reason)) return
 
     this._sequenceNumber = sequence
-
+    
     const thisOrder = this._orders[orderId]
     if (!thisOrder) return
 
@@ -77,6 +82,8 @@ export class OrderBook {
   }
 
   handleMatch({ orderId, quantity, sequence, side }){
+    if (enableLogging) console.log({type: 'match', orderId, quantity, sequence, side})
+
     if (!(sequence > this._sequenceNumber)) return
     if (!['buy', 'sell'].includes(side)) return
 
@@ -106,6 +113,8 @@ export class OrderBook {
   }
 
   handleOpen({ orderId, price, quantity, sequence, side }){
+    if (enableLogging) console.log({type: 'open', orderId, price, quantity, sequence, side})
+
     if (!(sequence > this._sequenceNumber)) return
     if (!['buy', 'sell'].includes(side)) return
 
@@ -145,5 +154,6 @@ export class OrderBook {
     this._bids = aggregatedBids
     this._orders = aggregatedOrders
     this._sequenceNumber = sequence
+    if (enableLogging) console.log({aggregatedAsks, aggregatedBids, sequence})
   }
 }

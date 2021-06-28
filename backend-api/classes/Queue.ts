@@ -1,43 +1,51 @@
 export class Queue {
-  queue: Array<any>
-  processing: boolean
-  paused: boolean
+  _firstSeqNum: number
+  _processing: boolean
+  _paused: boolean
+  _queue: Array<any>
 
   constructor() {
-    this.queue = []
-    this.processing = false
-    this.paused = true
+    this._queue = []
+    this._firstSeqNum = null
+    this._processing = false
+    this._paused = true
   }
 
-  addToQueue(job) {
-    this.queue.push(job)
+  addToQueue(job, seq) {
+    this._queue.push(job)
 
-    if (!this.processing && !this.paused) {
-      this.processing = true
+    if (!this._firstSeqNum && seq) this._firstSeqNum = seq
+
+    if (!this._processing && !this._paused) {
+      this._processing = true
       this.run()
     }
   }
 
+  getFirstSeqNum() {
+    return this._firstSeqNum
+  }
+
   start() {
-    this.paused = false
-    if (this.queue.length) {
-      this.processing = true
+    this._paused = false
+    if (this._queue.length) {
+      this._processing = true
       this.run()
     }
   }
 
   stop() {
-    this.paused = true
+    this._paused = true
   }
 
   async run(){
-    while(this.queue.length) {
-      const job = this.queue.shift()
+    while(this._queue.length) {
+      const job = this._queue.shift()
       try {
         await job()
       } catch (error) {}
     }
 
-    this.processing = false
+    this._processing = false
   }
 }
