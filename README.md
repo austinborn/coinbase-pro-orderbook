@@ -1,3 +1,6 @@
+<img width="765" alt="Screen Shot 2021-06-27 at 11 30 51 PM" src="https://user-images.githubusercontent.com/15525028/123590773-f380ab80-d79f-11eb-8201-5aaf3113469b.png">
+
+
 # Coinbase Pro L2 Order Book
 This project implements an L2 order book for the Coinbase Pro exchange, connecting to both the websocket and REST endpoints necessary to fetch and handle L3 order data, which is maintained as an L2 order book in the backend and displayed in the web GUI via a second websocket connection.
 
