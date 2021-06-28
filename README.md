@@ -36,6 +36,9 @@ Install the necessary packages for the frontend.
 ~/coinbase-pro-orderbook/backend-api $ npm run build
 ```
 Finally, start the application, which is available in the browser at [http://localhost:3000](http://localhost:3000).
+```
+~/coinbase-pro-orderbook/backend-api $ npm run start
+```
 
 ## Credits
 Written by Austin Born
