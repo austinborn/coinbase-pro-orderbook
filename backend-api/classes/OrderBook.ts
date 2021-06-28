@@ -1,6 +1,7 @@
 import Decimal from 'decimal.js'
 import { Dictionary, Order, OrderBookLevel } from '../types'
 
+import { enableLogging } from '../config'
 import {
   processChangeOrder,
   processDoneOrder,
@@ -41,12 +42,14 @@ export class OrderBook {
   }
 
   handleChange({ newSize, orderId, sequence, side }){
+    if (enableLogging) console.log({ type: 'change', orderId, sequence, side, newSize })
+
     if (!(sequence > this._sequenceNumber)) return
     if (!['buy', 'sell'].includes(side)) return
     if (!newSize) return
 
     this._sequenceNumber = sequence
-
+    
     const thisOrder = this._orders[orderId]
     if (!thisOrder) return
 
@@ -57,26 +60,30 @@ export class OrderBook {
     thisOrder.quantity = decimalNewSize
 
     if (side === 'buy') this._bids = processChangeOrder(this._bids, thisOrder.price, delta, false)
-    else this._asks = processChangeOrder(this._asks, thisOrder.price, delta)
+    else                this._asks = processChangeOrder(this._asks, thisOrder.price, delta)
   }
 
   handleDone({ orderId, reason, sequence, side }){
+    if (enableLogging) console.log({type: 'done', orderId, reason, sequence, side})
+
     if (!(sequence > this._sequenceNumber)) return
     if (!['buy', 'sell'].includes(side)) return
     if (!['filled', 'canceled'].includes(reason)) return
 
     this._sequenceNumber = sequence
-
+    
     const thisOrder = this._orders[orderId]
     if (!thisOrder) return
 
     if (side === 'buy') this._bids = processDoneOrder(this._bids, thisOrder, false)
-    else this._asks = processDoneOrder(this._asks, thisOrder)
+    else                this._asks = processDoneOrder(this._asks, thisOrder)
 
     delete this._orders[orderId]
   }
 
   handleMatch({ orderId, quantity, sequence, side }){
+    if (enableLogging) console.log({type: 'match', orderId, quantity, sequence, side})
+
     if (!(sequence > this._sequenceNumber)) return
     if (!['buy', 'sell'].includes(side)) return
 
@@ -95,17 +102,19 @@ export class OrderBook {
       const delta = matchQuantity.neg()
 
       if (side === 'buy') this._bids = processChangeOrder(this._bids, thisOrder.price, delta, false)
-      else this._asks = processChangeOrder(this._asks, thisOrder.price, delta)
+      else                this._asks = processChangeOrder(this._asks, thisOrder.price, delta)
 
     } else {
       if (side === 'buy') this._bids = processDoneOrder(this._bids, thisOrder, false)
-      else this._asks = processDoneOrder(this._asks, thisOrder)
+      else                this._asks = processDoneOrder(this._asks, thisOrder)
   
       delete this._orders[orderId]
     }
   }
 
   handleOpen({ orderId, price, quantity, sequence, side }){
+    if (enableLogging) console.log({type: 'open', orderId, price, quantity, sequence, side})
+
     if (!(sequence > this._sequenceNumber)) return
     if (!['buy', 'sell'].includes(side)) return
 
@@ -115,7 +124,7 @@ export class OrderBook {
     this._orders[orderId] = formattedOrder
 
     if (side === 'buy') this._bids = processOpenOrder(this._bids, formattedOrder, false)
-    else this._asks = processOpenOrder(this._asks, formattedOrder)
+    else                this._asks = processOpenOrder(this._asks, formattedOrder)
   }
 
   async initialize(getter) {
@@ -145,5 +154,6 @@ export class OrderBook {
     this._bids = aggregatedBids
     this._orders = aggregatedOrders
     this._sequenceNumber = sequence
+    if (enableLogging) console.log({aggregatedAsks, aggregatedBids, sequence})
   }
 }

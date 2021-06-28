@@ -5,8 +5,7 @@ import { CoinbaseWebsocket } from './classes/CoinbaseWebsocket';
 
 import { queue } from './registry/queue'
 import { orderBook } from './registry/orderBook'
-
-var coinbaseWebsocket = new CoinbaseWebsocket({ orderBook, queue })
+import { enableLogging } from './config'
 
 let appBase = express();
 let wsInstance = expressWs(appBase);
@@ -14,18 +13,21 @@ let { app } = wsInstance;
 
 const port = 8000
 
-const MESSAGE_INTERVAL = 250 //millis
-
 app.ws('/', (ws, req) => {})
+
+app.listen(port)
 
 var wsServer = wsInstance.getWss()
 
-setInterval(function () {//TODO update on every tick
+const onOrderBookUpdate = () => {
   wsServer.clients.forEach(client => {
     const snapshot = orderBook.getSnapshot()
+
+    if (enableLogging && (parseFloat(snapshot.asks[0].price) <= parseFloat(snapshot.bids[0].price))) console.log(`Error! Book is crossed at sequence=${orderBook.getSequenceNumber()}`)
+
     const message = JSON.stringify(snapshot)
     client.send(message)
   })
-}, MESSAGE_INTERVAL)
+}
 
-app.listen(port)
+var coinbaseWebsocket = new CoinbaseWebsocket({ onOrderBookUpdate, orderBook, queue })
