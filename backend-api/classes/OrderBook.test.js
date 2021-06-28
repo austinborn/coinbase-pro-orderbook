@@ -457,7 +457,7 @@ describe('OrderBook.handleOpen', () => {
   })
 
   it ('ignores message with unknown side', () => {
-    orderBook.handleMatch({ ...testMessages.open[0], side: 'why note both?' })
+    orderBook.handleOpen({ ...testMessages.open[0], side: 'why note both?' })
 
     expect(orderBook._asks).toEqual(testAsks)
     expect(orderBook._bids).toEqual(testBids)
