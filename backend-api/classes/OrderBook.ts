@@ -1,4 +1,7 @@
 import Decimal from 'decimal.js'
+
+var ld = require('lodash');
+
 import { Dictionary, Order, OrderBookLevel } from '../types'
 
 import { enableLogging } from '../config'
@@ -44,9 +47,12 @@ export class OrderBook {
   handleChange({ newSize, orderId, sequence, side }){
     if (enableLogging) console.log({ type: 'change', orderId, sequence, side, newSize })
 
-    if (!(sequence > this._sequenceNumber)) return
-    if (!['buy', 'sell'].includes(side)) return
-    if (!newSize) return
+    if (!(
+      ld.isFinite(parseFloat(newSize)) &&
+      ld.isString(orderId) &&
+      (sequence > this._sequenceNumber) &&
+      ['buy', 'sell'].includes(side)
+    )) return
 
     this._sequenceNumber = sequence
     
@@ -66,9 +72,12 @@ export class OrderBook {
   handleDone({ orderId, reason, sequence, side }){
     if (enableLogging) console.log({type: 'done', orderId, reason, sequence, side})
 
-    if (!(sequence > this._sequenceNumber)) return
-    if (!['buy', 'sell'].includes(side)) return
-    if (!['filled', 'canceled'].includes(reason)) return
+    if (!(
+      ld.isString(orderId) &&
+      ['filled', 'canceled'].includes(reason) &&
+      (sequence > this._sequenceNumber) &&
+      ['buy', 'sell'].includes(side)
+    )) return
 
     this._sequenceNumber = sequence
     
@@ -84,8 +93,12 @@ export class OrderBook {
   handleMatch({ orderId, quantity, sequence, side }){
     if (enableLogging) console.log({type: 'match', orderId, quantity, sequence, side})
 
-    if (!(sequence > this._sequenceNumber)) return
-    if (!['buy', 'sell'].includes(side)) return
+    if (!(
+      ld.isString(orderId) &&
+      ld.isFinite(parseFloat(quantity)) &&
+      (sequence > this._sequenceNumber) &&
+      ['buy', 'sell'].includes(side)
+    )) return
 
     this._sequenceNumber = sequence
 
@@ -115,8 +128,13 @@ export class OrderBook {
   handleOpen({ orderId, price, quantity, sequence, side }){
     if (enableLogging) console.log({type: 'open', orderId, price, quantity, sequence, side})
 
-    if (!(sequence > this._sequenceNumber)) return
-    if (!['buy', 'sell'].includes(side)) return
+    if (!(
+      ld.isString(orderId) &&
+      ld.isFinite(parseFloat(price)) &&
+      ld.isFinite(parseFloat(quantity)) &&
+      (sequence > this._sequenceNumber) &&
+      ['buy', 'sell'].includes(side)
+    )) return
 
     this._sequenceNumber = sequence
 
