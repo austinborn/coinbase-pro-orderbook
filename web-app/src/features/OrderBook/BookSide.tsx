@@ -16,7 +16,7 @@ function BookSide({ levels = [], title = '' }: BookSideProps) {
         </Box>
       </Typography>
       {levels.map((lvl, i) => (
-        <Grid container xs={12} style={{margin: 'auto'}}>
+        <Grid container style={{margin: 'auto'}} key={i}>
           <Grid item xs={1}></Grid>
           <Grid item xs={5}>
             <Typography key={`${i}-qty`}>
@@ -30,7 +30,7 @@ function BookSide({ levels = [], title = '' }: BookSideProps) {
           </Grid>
           <Grid item xs={5}>
             <Typography key={`${i}-price`}>
-              {lvl.price}
+              {`$${lvl.price}`}
             </Typography>
           </Grid>
         </Grid>

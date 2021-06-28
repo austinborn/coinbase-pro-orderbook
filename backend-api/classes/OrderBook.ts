@@ -138,11 +138,10 @@ export class OrderBook {
 
     this._sequenceNumber = sequence
 
-    const formattedOrder = { price: new Decimal(price), quantity: new Decimal(quantity) }
-    this._orders[orderId] = formattedOrder
+    this._orders[orderId] = generateOrder(price, quantity)
 
-    if (side === 'buy') this._bids = processOpenOrder(this._bids, formattedOrder, false)
-    else                this._asks = processOpenOrder(this._asks, formattedOrder)
+    if (side === 'buy') this._bids = processOpenOrder(this._bids, generateOrder(price, quantity), false)
+    else                this._asks = processOpenOrder(this._asks, generateOrder(price, quantity))
   }
 
   async initialize(getter) {

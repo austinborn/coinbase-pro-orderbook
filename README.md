@@ -12,7 +12,7 @@ First, install the necessary packages for the backend.
 ```
 ~/coinbase-pro-orderbook/backend-api $ npm i
 ```
-Next, run the tests to confirm proper functionality. The end result should look like this:
+(Optional) Next, run the tests to confirm proper functionality. The end result should look like this:
 ```
 ~/coinbase-pro-orderbook/backend-api $ npm run test
 ...
@@ -22,8 +22,9 @@ Tests:       28 passed, 28 total
 Snapshots:   0 total
 Time:        0.531 s, estimated 1 s
 Ran all test suites.
-
 ```
+(Optional) If you would like to see detailed output of the server, you can set `const enableLogging = true` in `~/coinbase-pro-orderbook/backend-api/config.ts`.
+
 Finally, start the server. The REST API is accessible at [http://localhost:8000](http://localhost:8000) and websocket at [ws://localhost:8000](ws://localhost:8000), although there are currently no accepted REST endpoints.
 ```
 ~/coinbase-pro-orderbook/backend-api $ npm run serve

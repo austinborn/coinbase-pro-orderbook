@@ -32,7 +32,7 @@ const paperStyle = {
   backgroundColor: '#dcfcf4',
   margin: 'auto',
   marginTop: '20px',
-  maxWidth: '600px',
+  maxWidth: '660px',
   padding: '10px'
 }
 
@@ -58,12 +58,11 @@ function OrderBook() {
         <Grid item xs={12} style={{ display: 'flex' }}>
           <Typography variant={'h4'} style={{ margin: 'auto' }}>
             <Box fontWeight="fontWeightBold" m={1}>
-              {"Coinbase Pro L2 Orderbook"}
+              {"Coinbase Pro L2 Orderbook (BTC/USD)"}
             </Box>
           </Typography>
         </Grid>
         <Grid item xs={12} style={{ display: 'flex' }}>
-
           <Typography variant={'h6'} style={{ margin: 'auto' }}>
             <span style={{ display: 'flex' }}>
               Websocket Status:
@@ -74,7 +73,6 @@ function OrderBook() {
               </Box>
             </span>
           </Typography>
-
         </Grid>
         <OrderBookBody bids={bids} asks={asks} />
       </Grid>
