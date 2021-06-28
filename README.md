@@ -38,6 +38,9 @@ Install the necessary packages for the frontend.
 Finally, start the application, which is available in the browser at [http://localhost:3000](http://localhost:3000).
 
 ## Credits
-Written by Austin Born \
+Written by Austin Born
+
+## Resources
 [Create React App](https://github.com/facebook/create-react-app) \
-[Build an API with Node.js, Express, and TypeScript](https://www.split.io/blog/node-js-typescript-express-tutorial/) 
+[Build an API with Node.js, Express, and TypeScript](https://www.split.io/blog/node-js-typescript-express-tutorial/) \
+[Coinbase Pro API - Full Channel](https://docs.pro.coinbase.com/#the-full-channel)
