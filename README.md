@@ -22,7 +22,6 @@ Tests:       28 passed, 28 total
 Snapshots:   0 total
 Time:        0.531 s, estimated 1 s
 Ran all test suites.
-
 ```
 (Optional) If you would like to see detailed output of the server, you can set `const enableLogging = true` in `~/coinbase-pro-orderbook/backend-api/config.ts`.
 
