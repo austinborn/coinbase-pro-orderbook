@@ -33,11 +33,11 @@ Install the necessary packages for the frontend.
 ```
 (Optional) Build the image if you wish to run the production version.
 ```
-~/coinbase-pro-orderbook/backend-api $ npm run build
+~/coinbase-pro-orderbook/web-app $ npm run build
 ```
 Finally, start the application, which is available in the browser at [http://localhost:3000](http://localhost:3000).
 ```
-~/coinbase-pro-orderbook/backend-api $ npm run start
+~/coinbase-pro-orderbook/web-app $ npm run start
 ```
 
 ## Credits
