@@ -5,7 +5,7 @@ import { CoinbaseWebsocket } from './classes/CoinbaseWebsocket'
 
 import { queue } from './registry/queue'
 import { orderBook } from './registry/orderBook'
-import { enableLogging } from './config'
+import { enableErrorLogging } from './config'
 
 let appBase = express()
 let wsInstance = expressWs(appBase)
@@ -23,7 +23,7 @@ const onOrderBookUpdate = () => {
   wsServer.clients.forEach(client => {
     const snapshot = orderBook.getSnapshot()
 
-    if (enableLogging) {
+    if (enableErrorLogging) {
       if (parseFloat(snapshot.asks[0].price) <= parseFloat(snapshot.bids[0].price)) console.log({
         msg: 'Error! Book is crossed.',
         sequence: orderBook.getSequenceNumber(),

@@ -4,7 +4,10 @@ var ld = require('lodash')
 
 import { Dictionary, Order, OrderBookLevel } from '../types'
 
-import { enableLogging } from '../config'
+import {
+  enableErrorLogging,
+  enableInfoLogging
+} from '../config'
 import {
   processChangeOrder,
   processDoneOrder,
@@ -56,7 +59,7 @@ export class OrderBook {
 
   handleChange({ newSize, orderId, sequence, side }) {
     try {
-      if (enableLogging) console.log({ type: 'change', orderId, sequence, side, newSize })
+      if (enableInfoLogging) console.log({ type: 'change', orderId, sequence, side, newSize })
 
       // Validation
       if (!(
@@ -80,7 +83,7 @@ export class OrderBook {
       if (side === 'buy') this._bids = processChangeOrder(this._bids, thisOrder.price, delta, false)
       else                this._asks = processChangeOrder(this._asks, thisOrder.price, delta)
     } catch(e) {
-      if (enableLogging) console.log({
+      if (enableErrorLogging) console.log({
         msg: `Error! Issue in handleChange: ${e}`,
         sequence
       })
@@ -89,7 +92,7 @@ export class OrderBook {
 
   handleDone({ orderId, reason, sequence, side }) {
     try {
-      if (enableLogging) console.log({type: 'done', orderId, reason, sequence, side})
+      if (enableInfoLogging) console.log({type: 'done', orderId, reason, sequence, side})
 
       // Validation
       if (!(
@@ -109,7 +112,7 @@ export class OrderBook {
       // Delete order from order set
       delete this._orders[orderId]
     } catch(e) {
-      if (enableLogging) console.log({
+      if (enableErrorLogging) console.log({
         msg: `Error! Issue in handleDone: ${e}`,
         sequence
       })
@@ -118,7 +121,7 @@ export class OrderBook {
 
   handleMatch({ orderId, quantity, sequence, side }) {
     try {
-      if (enableLogging) console.log({type: 'match', orderId, quantity, sequence, side})
+      if (enableInfoLogging) console.log({type: 'match', orderId, quantity, sequence, side})
 
       // Validation
       if (!(
@@ -153,7 +156,7 @@ export class OrderBook {
         delete this._orders[orderId]
       }
     } catch(e) {
-      if (enableLogging) console.log({
+      if (enableErrorLogging) console.log({
         msg: `Error! Issue in handleMatch: ${e}`,
         sequence
       })
@@ -162,7 +165,7 @@ export class OrderBook {
 
   handleOpen({ orderId, price, quantity, sequence, side }) {
     try {
-      if (enableLogging) console.log({type: 'open', orderId, price, quantity, sequence, side})
+      if (enableInfoLogging) console.log({type: 'open', orderId, price, quantity, sequence, side})
 
       // Validation
       if (!(
@@ -178,7 +181,7 @@ export class OrderBook {
       if (side === 'buy') this._bids = processOpenOrder(this._bids, generateOrder(price, quantity), false)
       else                this._asks = processOpenOrder(this._asks, generateOrder(price, quantity))
     } catch(e) {
-      if (enableLogging) console.log({
+      if (enableErrorLogging) console.log({
         msg: `Error! Issue in handleOpen: ${e}`,
         sequence
       })
@@ -214,9 +217,9 @@ export class OrderBook {
       this._bids = aggregatedBids
       this._orders = aggregatedOrders
       this._sequenceNumber = sequence
-      if (enableLogging) console.log({aggregatedAsks, aggregatedBids, sequence})
+      if (enableInfoLogging) console.log({aggregatedAsks, aggregatedBids, sequence})
     } catch(e) {
-      if (enableLogging) console.log({ msg: `Error! Failed to initialize: ${e}` })
+      if (enableErrorLogging) console.log({ msg: `Error! Failed to initialize: ${e}` })
     }
   }
 }
