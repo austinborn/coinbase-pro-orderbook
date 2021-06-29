@@ -50,7 +50,7 @@ function OrderBook() {
     }
   )
 
-  const { asks = [], bids = [] } = lastJsonMessage || {};
+  const { asks = [], bids = [] } = lastJsonMessage || {}
 
   return (
     <Paper style={paperStyle}>

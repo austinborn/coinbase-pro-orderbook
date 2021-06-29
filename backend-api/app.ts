@@ -1,15 +1,15 @@
 import express from 'express'
-import expressWs from 'express-ws';
+import expressWs from 'express-ws'
 
-import { CoinbaseWebsocket } from './classes/CoinbaseWebsocket';
+import { CoinbaseWebsocket } from './classes/CoinbaseWebsocket'
 
 import { queue } from './registry/queue'
 import { orderBook } from './registry/orderBook'
-import { enableLogging } from './config'
+import { enableErrorLogging } from './config'
 
-let appBase = express();
-let wsInstance = expressWs(appBase);
-let { app } = wsInstance;
+let appBase = express()
+let wsInstance = expressWs(appBase)
+let { app } = wsInstance
 
 const port = 8000
 
@@ -23,7 +23,7 @@ const onOrderBookUpdate = () => {
   wsServer.clients.forEach(client => {
     const snapshot = orderBook.getSnapshot()
 
-    if (enableLogging) {
+    if (enableErrorLogging) {
       if (parseFloat(snapshot.asks[0].price) <= parseFloat(snapshot.bids[0].price)) console.log({
         msg: 'Error! Book is crossed.',
         sequence: orderBook.getSequenceNumber(),

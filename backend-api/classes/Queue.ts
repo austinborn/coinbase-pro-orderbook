@@ -1,20 +1,26 @@
+type QueueItem = {
+  seq: number
+  job: () => void
+}
+
 export class Queue {
-  _firstSeqNum: number
   _processing: boolean
   _paused: boolean
-  _queue: Array<any>
+  _queue: Array<QueueItem>
 
   constructor() {
     this._queue = []
-    this._firstSeqNum = null
     this._processing = false
     this._paused = true
   }
 
   addToQueue(job, seq) {
-    this._queue.push(job)
+    if (!(
+      Number.isInteger(seq) &&
+      (seq > this.getLastSequenceNumber())
+    )) return
 
-    if (!this._firstSeqNum && seq) this._firstSeqNum = seq
+    this._queue.push({seq, job})
 
     if (!this._processing && !this._paused) {
       this._processing = true
@@ -22,8 +28,20 @@ export class Queue {
     }
   }
 
-  getFirstSeqNum() {
-    return this._firstSeqNum
+  clear() {
+    this._queue = []
+  }
+
+  getFirstSequenceNumber() {
+    return this._queue.length
+      ? this._queue[0].seq
+      : -1
+  }
+
+  getLastSequenceNumber() {
+    return this._queue.length
+      ? this._queue[this._queue.length - 1].seq
+      : -1
   }
 
   start() {
@@ -38,9 +56,9 @@ export class Queue {
     this._paused = true
   }
 
-  async run(){
-    while(this._queue.length) {
-      const job = this._queue.shift()
+  async run() {
+    while(this._queue.length && !this._paused) {
+      const { job } = this._queue.shift()
       try {
         await job()
       } catch (error) {}
