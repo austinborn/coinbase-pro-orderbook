@@ -5,8 +5,8 @@ const REST_API = 'https://api.pro.coinbase.com/products/BTC-USD/book'
 const binarySearch = (
   array = [],
   emptyArrayReturn,
-  leftCheck,
-  rightCheck,
+  referencePrice,
+  asc = true,
   foundModifier,
   notFoundModifier
 ) => {
@@ -20,18 +20,25 @@ const binarySearch = (
     mid = Math.floor(((hi - lo) / 2) + lo)
     level = array[mid]
 
-    if (leftCheck(level)) {
+    //Is reference price between lo and mid?
+    if (asc ? referencePrice.lt(level.price) : referencePrice.gt(level.price)) {
+      // If mid is head of array, referencePrice is not in array
       if (mid === lo) {
         notFoundModifier(mid)
         break
       }
       hi = mid
-    } else if (rightCheck(level)) {
+
+    //Is reference price between mid and hi?
+    } else if (asc ? referencePrice.gt(level.price) : referencePrice.lt(level.price)) {
+      // If mid is tail of array, referencePrice is not in array
       if (mid === hi) {
         notFoundModifier(mid + 1)
         break
       }
       lo = mid + 1
+
+    // Reference price is equal to this level
     } else {
       foundModifier(level, mid)
       break
@@ -44,8 +51,8 @@ const binarySearch = (
 export const processChangeOrder = (sortedBook = [], price, delta, asc = true) => binarySearch(
   sortedBook,
   [],
-  b => asc ? price.lt(b.price) : price.gt(b.price),
-  b => asc ? price.gt(b.price) : price.lt(b.price),
+  price,
+  asc,
   (b, i) => b.quantity = b.quantity.plus(delta),
   i => null
 )
@@ -53,8 +60,8 @@ export const processChangeOrder = (sortedBook = [], price, delta, asc = true) =>
 export const processDoneOrder = (sortedBook = [], order, asc = true) => binarySearch(
   sortedBook,
   [],
-  b => asc ? order.price.lt(b.price) : order.price.gt(b.price),
-  b => asc ? order.price.gt(b.price) : order.price.lt(b.price),
+  order.price,
+  asc,
   (b, i) => {
     b.quantity = b.quantity.minus(order.quantity)
     if (!b.quantity.isPos() || b.quantity.isZero()) sortedBook.splice(i, 1)
@@ -65,14 +72,14 @@ export const processDoneOrder = (sortedBook = [], order, asc = true) => binarySe
 export const processOpenOrder = (sortedBook = [], order, asc = true) => binarySearch(
   sortedBook,
   [order],
-  b => asc ? order.price.lt(b.price) : order.price.gt(b.price),
-  b => asc ? order.price.gt(b.price) : order.price.lt(b.price),
+  order.price,
+  asc,
   (b, i) => b.quantity = b.quantity.plus(order.quantity),
   i => sortedBook.splice(i, 0, order)
 )
 
 export const fetchInitialSnapshot = async () => {
-  const { data } = await axios.get(REST_API, { params: { level: 3 } });
+  const { data } = await axios.get(REST_API, { params: { level: 3 } })
   return data
 }
 

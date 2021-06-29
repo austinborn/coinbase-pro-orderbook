@@ -1,15 +1,15 @@
 import express from 'express'
-import expressWs from 'express-ws';
+import expressWs from 'express-ws'
 
-import { CoinbaseWebsocket } from './classes/CoinbaseWebsocket';
+import { CoinbaseWebsocket } from './classes/CoinbaseWebsocket'
 
 import { queue } from './registry/queue'
 import { orderBook } from './registry/orderBook'
 import { enableLogging } from './config'
 
-let appBase = express();
-let wsInstance = expressWs(appBase);
-let { app } = wsInstance;
+let appBase = express()
+let wsInstance = expressWs(appBase)
+let { app } = wsInstance
 
 const port = 8000
 
