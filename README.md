@@ -23,7 +23,7 @@ Snapshots:   0 total
 Time:        0.531 s, estimated 1 s
 Ran all test suites.
 ```
-(Optional) If you would like to see detailed output of the server, you can set `const enableInfoLogging = true` in `~/coinbase-pro-orderbook/backend-api/config.ts`.
+(Optional) If you would like to see detailed output of the server, you can set `const enableInfoLogging = true` in `~/coinbase-pro-orderbook/backend-api/config.ts`. Note: error logging is enabled by default in the same file.
 
 Finally, start the server. The REST API is accessible at [http://localhost:8000](http://localhost:8000) and websocket at [ws://localhost:8000](ws://localhost:8000), although there are currently no accepted REST endpoints.
 ```
@@ -45,7 +45,7 @@ Finally, start the application, which is available in the browser at [http://loc
 ```
 
 ## Credits
-Written by Austin Born
+Written by Austin Born (<austinborn212@gmail.com>)
 
 ## Resources
 [Create React App](https://github.com/facebook/create-react-app) \
